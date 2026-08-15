@@ -1,69 +1,106 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { loginAction } from "./actions";
+import { Lock, Mail, ShieldAlert, ArrowRight } from "lucide-react";
+import Link from "next/link";
+
+export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(formData: FormData) {
+    setLoading(true);
+    setError(null);
+    try {
+      await loginAction(formData);
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials");
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
+    <div className="flex" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px' }}>
+      <div className="glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '420px', padding: '40px' }}>
+        
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'inline-flex', padding: '16px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '50%', marginBottom: '16px' }}>
+            <Lock size={32} color="#60a5fa" />
+          </div>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold' }} className="text-gradient">
+            Admin Portal
           </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p style={{ margin: '0', color: '#94a3b8', fontSize: '14px' }}>
+            Sign in to manage your application
           </p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {error && (
+          <div className="error-message animate-fade-in">
+            <ShieldAlert size={18} />
+            {error}
+          </div>
+        )}
+
+        <form action={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#cbd5e1' }}>
+              Email Address
+            </label>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '12px', top: '14px', color: '#64748b' }}>
+                <Mail size={18} />
+              </div>
+              <input
+                name="email"
+                type="email"
+                required
+                className="input-field"
+                style={{ paddingLeft: '40px' }}
+                placeholder="admin@example.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#cbd5e1' }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '12px', top: '14px', color: '#64748b' }}>
+                <Lock size={18} />
+              </div>
+              <input
+                name="password"
+                type="password"
+                required
+                className="input-field"
+                style={{ paddingLeft: '40px' }}
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            className="btn-primary btn-icon"
+            disabled={loading}
+            style={{ opacity: loading ? 0.7 : 1, marginTop: '8px' }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            {loading ? 'Authenticating...' : 'Sign In'}
+            {!loading && <ArrowRight size={18} />}
+          </button>
+
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#94a3b8' }}>
+            Don't have an account?{' '}
+            <Link href="/signup" style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: '500' }}>
+              Sign Up
+            </Link>
+          </div>
+        </form>
+
+      </div>
     </div>
   );
 }
