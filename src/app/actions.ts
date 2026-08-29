@@ -3,6 +3,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 export async function loginAction(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
@@ -11,7 +13,7 @@ export async function loginAction(formData: FormData) {
     throw new Error("Please provide email and password");
   }
 
-  const response = await fetch('http://localhost:5000/api/auth/login', {
+  const response = await fetch(`${API_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -50,7 +52,7 @@ export async function signupAction(formData: FormData) {
     throw new Error("Please provide all required fields");
   }
 
-  const response = await fetch('http://localhost:5000/api/auth/signup', {
+  const response = await fetch(`${API_URL}/api/auth/signup`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -98,13 +100,11 @@ export async function addCreatorAction(formData: FormData) {
     }
   });
 
-  payload.append("following", JSON.stringify({
-    youtube,
-    linkedin,
-    instagram
-  }));
+  if (youtube) payload.append("following.youtube", youtube.toString());
+  if (linkedin) payload.append("following.linkedin", linkedin.toString());
+  if (instagram) payload.append("following.instagram", instagram.toString());
 
-  const response = await fetch('http://localhost:5000/api/creators', {
+  const response = await fetch(`${API_URL}/api/creators`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`

@@ -6,22 +6,33 @@ import { cookies } from "next/headers";
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("admin_session")?.value;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   let creators: any[] = [];
+  let stats: any = null;
   if (token) {
     try {
-      const res = await fetch('http://localhost:5000/api/creators', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        cache: 'no-store'
-      });
-      if (res.ok) {
-        const data = await res.json();
-        creators = data.creators || [];
+      const [creatorsRes, statsRes] = await Promise.all([
+        fetch(`${API_URL}/api/creators`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
+        }),
+        fetch(`${API_URL}/api/dashboard/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
+        })
+      ]);
+
+      if (creatorsRes.ok) {
+        const data = await creatorsRes.json();
+        creators = data.creators || data || [];
+      }
+
+      if (statsRes.ok) {
+        stats = await statsRes.json();
       }
     } catch (e) {
-      console.error("Error fetching creators:", e);
+      console.error("Error fetching dashboard data:", e);
     }
   }
 
@@ -50,7 +61,7 @@ export default async function DashboardPage() {
             <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Total Creators</h3>
             <Users size={20} color="#60a5fa" />
           </div>
-          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{creators.length > 0 ? creators.length : 10482}</p>
+          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{stats?.totalCreators ?? (creators.length > 0 ? creators.length : 10482)}</p>
           <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#4ade80' }}>+12% from last month</p>
         </div>
 
@@ -59,7 +70,7 @@ export default async function DashboardPage() {
             <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Active Sessions</h3>
             <Activity size={20} color="#c084fc" />
           </div>
-          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>1,204</p>
+          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{stats?.activeSessions?.toLocaleString() ?? '1,204'}</p>
           <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#4ade80' }}>+5% from last hour</p>
         </div>
 
@@ -68,7 +79,7 @@ export default async function DashboardPage() {
             <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Monthly Revenue</h3>
             <DollarSign size={20} color="#f472b6" />
           </div>
-          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>$48,294</p>
+          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{stats?.monthlyRevenue ? `$${stats.monthlyRevenue.toLocaleString()}` : '$48,294'}</p>
           <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#f87171' }}>-2% from last month</p>
         </div>
 
@@ -77,7 +88,7 @@ export default async function DashboardPage() {
             <h3 style={{ margin: 0, color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Active Subscriptions</h3>
             <CreditCard size={20} color="#34d399" />
           </div>
-          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>3,892</p>
+          <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold' }}>{stats?.activeSubscriptions?.toLocaleString() ?? '3,892'}</p>
           <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#4ade80' }}>+8% from last month</p>
         </div>
       </div>
